@@ -1,0 +1,154 @@
+:root {
+  --font-display: 'Outfit', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --editor-bg: #1a1b26;
+  --sidebar-bg: #13141c;
+  --activitybar-bg: #0f1017;
+  --tab-bg: #13141c;
+  --card-bg: rgba(255, 255, 255, 0.025);
+  --border: rgba(255, 255, 255, 0.06);
+  --active-bg: rgba(255, 255, 255, 0.04);
+
+  --text: #c0caf5;
+  --text-secondary: #9aa5ce;
+  --text-muted: #565f89;
+  --comment: #565f89;
+  --accent: #7aa2f7;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  overflow: hidden;
+  height: 100%;
+  cursor: none;
+}
+
+/* Custom cursor - small inner dot */
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  background: #c0caf5;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  transform: translate(-50%, -50%);
+  transition: width 0.15s ease, height 0.15s ease, background 0.15s ease;
+}
+
+/* Custom cursor - outer trailing box */
+.cursor-box {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid rgba(192, 202, 245, 0.35);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 99998;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s ease, height 0.2s ease, border-color 0.2s ease, border-radius 0.2s ease;
+}
+
+/* When hovering clickable elements, grow the box and highlight */
+.cursor-hover .cursor-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+}
+
+.cursor-hover .cursor-box {
+  width: 44px;
+  height: 44px;
+  border-color: rgba(122, 162, 247, 0.5);
+  border-radius: 8px;
+}
+
+/* Hide custom cursor on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  html, body { cursor: auto; }
+  .cursor-dot, .cursor-box { display: none !important; }
+}
+
+/* Also hide on mobile widths */
+@media (max-width: 700px) {
+  html, body { cursor: auto; }
+  .cursor-dot, .cursor-box { display: none !important; }
+}
+
+/* Make sure all interactive elements also hide cursor */
+*, *::before, *::after {
+  cursor: none;
+}
+
+a, button, input, textarea, select, [role="button"] {
+  cursor: none !important;
+}
+
+#root {
+  height: 100%;
+}
+
+::selection {
+  background: rgba(122, 162, 247, 0.3);
+  color: #c0caf5;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+@media (max-width: 700px) {
+  .hideSmall {
+    display: none !important;
+  }
+}
+
+@keyframes paletteIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
