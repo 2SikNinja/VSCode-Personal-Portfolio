@@ -49,7 +49,7 @@ function ExplorerView({ activeFile, onFileSelect }) {
               onClick={() => {
                 if (f.action === 'download') {
                   const link = document.createElement('a');
-                  link.href = `${personalInfo.repoName ? '/' + personalInfo.repoName : ''}/Peter_Nguyen_Resume.pdf`;
+                  link.href = `${import.meta.env.BASE_URL}Peter_Nguyen_Resume.pdf`;
                   link.download = 'Peter_Nguyen_Resume.pdf';
                   link.click();
                 }

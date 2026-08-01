@@ -32,7 +32,7 @@ export const personalInfo = {
   copilotName: "Peter's Copilot",
   githubUsername: '2SikNinja',
   repoName: 'peter-portfolio',
-  githubUrl: 'https://github.com/2SikNinja/peter-portfolio',
+  githubUrl: 'https://github.com/2SikNinja/',
   resumeFileName: 'Peter_Nguyen_Resu...',
 };
 
