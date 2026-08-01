@@ -12,7 +12,7 @@
    ════════════════════════════════════════════════════════════════ */
 
 // ─── Base path (must match vite.config.js `base`) ───
-const assetBase = '/peter-portfolio';
+const assetBase = '/VSCode-Personal-Portfolio';
 
 export const assets = {
   base: assetBase,
