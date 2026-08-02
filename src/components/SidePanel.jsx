@@ -42,7 +42,7 @@ function ExplorerView({ activeFile, onFileSelect }) {
         ))}
         <div style={{ marginTop: '0.2rem' }}>
           {[
-            { logoKey: 'md', name: 'README.md', action: null },
+            { logoKey: 'md', name: 'README.md', action: 'navigate', target: 'home' },
             { logoKey: 'pdf', name: personalInfo.resumeFileName, action: 'download' },
           ].map((f) => (
             <button key={f.name}
@@ -52,6 +52,8 @@ function ExplorerView({ activeFile, onFileSelect }) {
                   link.href = `${import.meta.env.BASE_URL}Peter_Nguyen_Resume.pdf`;
                   link.download = 'Peter_Nguyen_Resume.pdf';
                   link.click();
+                } else if (f.action === 'navigate' && f.target) {
+                  onFileSelect(f.target);
                 }
               }}
               style={{ width: '100%', padding: '0.28rem 0.6rem 0.28rem 1.2rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.45rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', textAlign: 'left', transition: 'color 0.15s, background 0.1s' }}

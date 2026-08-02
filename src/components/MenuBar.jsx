@@ -58,8 +58,8 @@ export default function MenuBar({
     ],
     Edit: [
       { label: 'Find...', shortcut: 'Ctrl+P', action: onOpenPalette },
-      { label: 'Select All', shortcut: 'Ctrl+A', action: null },
-      { label: 'Copy', shortcut: 'Ctrl+C', action: null },
+      { label: 'Select All', shortcut: 'Ctrl+A', action: () => { try { document.execCommand('selectAll'); } catch(e) {} } },
+      { label: 'Copy', shortcut: 'Ctrl+C', action: () => { try { document.execCommand('copy'); } catch(e) {} } },
     ],
     View: [
       { label: 'Command Palette', shortcut: 'Ctrl+P', action: onOpenPalette },
@@ -67,10 +67,10 @@ export default function MenuBar({
       { label: 'Toggle Terminal', shortcut: 'Ctrl+`', action: onToggleTerminal },
       { label: `✦ ${personalInfo.firstName}'s Copilot`, shortcut: 'Ctrl+Shift+C', action: onToggleCopilot, highlight: true },
       { type: 'separator' },
-      { label: 'Enter Full Screen', shortcut: 'F11', action: () => document.documentElement.requestFullscreen?.() },
-      { label: 'Zoom In', shortcut: 'Ctrl++', action: null },
-      { label: 'Zoom Out', shortcut: 'Ctrl+-', action: null },
-      { label: 'Reset Zoom', action: null },
+      { label: 'Enter Full Screen', shortcut: 'F11', action: () => {
+        if (document.fullscreenElement) { document.exitFullscreen?.(); }
+        else { document.documentElement.requestFullscreen?.(); }
+      }},
     ],
     Go: [
       { label: 'Go to File...', shortcut: 'Ctrl+P', action: onOpenPalette },
@@ -80,12 +80,12 @@ export default function MenuBar({
         label: f.name,
         action: () => onOpenFile(f.id),
       })),
-      { label: 'README.md', action: null },
+      { label: 'README.md', action: () => onOpenFile('home') },
       { label: `${personalInfo.firstName}_Resume.pdf`, action: onDownloadResume },
     ],
     Run: [
       { label: 'Start Terminal', shortcut: 'Ctrl+`', action: onToggleTerminal },
-      { label: 'Run Last Command', action: null, disabled: true },
+      { label: 'Run Last Command', shortcut: 'Ctrl+Shift+`', action: onToggleTerminal },
     ],
     Terminal: [
       { label: 'New Terminal', shortcut: 'Ctrl+`', action: onToggleTerminal },

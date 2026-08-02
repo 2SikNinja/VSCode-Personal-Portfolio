@@ -1,25 +1,73 @@
-import { useEffect, useRef } from 'react';
-import { personalInfo, sourceControlData } from '../data/portfolioData';
+import { useState, useEffect, useRef } from 'react';
+import { personalInfo } from '../data/portfolioData';
+
+const GITHUB_API = `https://api.github.com/repos/${personalInfo.githubUsername}`;
+const REPO_NAME = 'VSCode-Personal-Portfolio';
 
 export default function SourceControlPopup({ open, onClose }) {
   const popupRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [repoData, setRepoData] = useState(null);
+  const [commits, setCommits] = useState([]);
+  const [error, setError] = useState(false);
+
+  // Fetch repo data when opened
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    setError(false);
+
+    const fetchData = async () => {
+      try {
+        const [repoRes, commitsRes, statsRes] = await Promise.all([
+          fetch(`${GITHUB_API}/${REPO_NAME}`),
+          fetch(`${GITHUB_API}/${REPO_NAME}/commits?per_page=5`),
+          fetch(`${GITHUB_API}/${REPO_NAME}/stats/contributors`),
+        ]);
+
+        if (!repoRes.ok || !commitsRes.ok) throw new Error('API error');
+
+        const repo = await repoRes.json();
+        const commitsList = await commitsRes.json();
+
+        // Parse contributor stats for total additions/deletions
+        let totalAdditions = 0;
+        let totalDeletions = 0;
+        let totalCommits = 0;
+
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          if (Array.isArray(statsData)) {
+            statsData.forEach((contributor) => {
+              totalCommits += contributor.total || 0;
+              (contributor.weeks || []).forEach((week) => {
+                totalAdditions += week.a || 0;
+                totalDeletions += week.d || 0;
+              });
+            });
+          }
+        }
+
+        setRepoData({ ...repo, totalCommits, totalAdditions, totalDeletions });
+        setCommits(commitsList);
+        setLoading(false);
+      } catch (err) {
+        setError(true);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [open]);
 
   // Close when clicking outside
   useEffect(() => {
     if (!open) return;
     const handleClick = (e) => {
-      if (popupRef.current && !popupRef.current.contains(e.target)) {
-        onClose();
-      }
+      if (popupRef.current && !popupRef.current.contains(e.target)) onClose();
     };
-    // Delay to avoid closing immediately from the icon click
-    const timeout = setTimeout(() => {
-      window.addEventListener('mousedown', handleClick);
-    }, 50);
-    return () => {
-      clearTimeout(timeout);
-      window.removeEventListener('mousedown', handleClick);
-    };
+    const timeout = setTimeout(() => window.addEventListener('mousedown', handleClick), 50);
+    return () => { clearTimeout(timeout); window.removeEventListener('mousedown', handleClick); };
   }, [open, onClose]);
 
   // Close on Escape
@@ -32,20 +80,36 @@ export default function SourceControlPopup({ open, onClose }) {
 
   if (!open) return null;
 
+  const defaultBranch = repoData?.default_branch || 'master';
+  const totalCommits = repoData?.size ? commits.length + '+' : '...';
+  const lastPush = repoData?.pushed_at
+    ? new Date(repoData.pushed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '...';
+
+  const formatTimeAgo = (dateStr) => {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 30) return `${diffDays}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
   return (
     <div
       ref={popupRef}
       style={{
-        position: 'fixed',
-        top: 80,
-        left: 56,
-        width: 300,
-        background: '#1e1f2e',
+        position: 'fixed', top: 80, left: 56,
+        width: 320, background: '#1e1f2e',
         border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: 10,
-        boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
-        zIndex: 900,
-        overflow: 'hidden',
+        borderRadius: 10, boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
+        zIndex: 900, overflow: 'hidden',
         animation: 'scPopupIn 0.15s ease-out',
       }}
     >
@@ -85,60 +149,130 @@ export default function SourceControlPopup({ open, onClose }) {
 
       {/* Content */}
       <div style={{ padding: '0.75rem 0.85rem' }}>
-        {/* Branch info */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '0.5rem',
-          padding: '0.6rem 0.7rem', background: 'var(--card-bg)',
-          border: '1px solid var(--border)', borderRadius: 8,
-          marginBottom: '0.75rem',
-        }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
-            <circle cx="12" cy="5" r="2.5" />
-            <circle cx="6" cy="19" r="2.5" />
-            <circle cx="18" cy="19" r="2.5" />
-            <path d="M12 7.5V12M12 12L6 16.5M12 12L18 16.5" />
-          </svg>
-          <p style={{
-            fontFamily: 'var(--font-mono)', fontSize: '0.82rem',
-            color: 'var(--text)', fontWeight: 600, flex: 1,
+        {loading ? (
+          <div style={{
+            textAlign: 'center', padding: '2rem 0',
+            fontFamily: 'var(--font-mono)', fontSize: '0.78rem',
+            color: 'var(--text-muted)',
           }}>
-            {sourceControlData.branch}
-          </p>
-          <span style={{
-            fontFamily: 'var(--font-mono)', fontSize: '0.62rem',
-            color: '#10b981',
+            <span style={{ animation: 'scPulse 1.5s ease-in-out infinite' }}>Fetching repo data...</span>
+            <style>{`@keyframes scPulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }`}</style>
+          </div>
+        ) : error ? (
+          <div style={{
+            textAlign: 'center', padding: '1.5rem 0',
+            fontFamily: 'var(--font-mono)', fontSize: '0.78rem',
+            color: 'var(--text-muted)',
           }}>
-            {sourceControlData.commitStatus}
-          </span>
-        </div>
-
-        {/* Stats grid */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '0.45rem', marginBottom: '0.85rem',
-        }}>
-          {sourceControlData.stats.map((stat) => (
-            <div key={stat.label} style={{
-              padding: '0.7rem 0.4rem', background: 'var(--card-bg)',
+            <p style={{ marginBottom: '0.5rem' }}>Could not fetch repo data</p>
+            <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', opacity: 0.6 }}>GitHub API rate limit may have been reached</p>
+          </div>
+        ) : (
+          <>
+            {/* Branch info */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.6rem 0.7rem', background: 'var(--card-bg)',
               border: '1px solid var(--border)', borderRadius: 8,
-              textAlign: 'center',
+              marginBottom: '0.75rem',
             }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
+                <circle cx="12" cy="5" r="2.5" />
+                <circle cx="6" cy="19" r="2.5" />
+                <circle cx="18" cy="19" r="2.5" />
+                <path d="M12 7.5V12M12 12L6 16.5M12 12L18 16.5" />
+              </svg>
               <p style={{
-                fontFamily: 'var(--font-display)', fontSize: '1.3rem',
-                fontWeight: 800, color: stat.color,
+                fontFamily: 'var(--font-mono)', fontSize: '0.82rem',
+                color: 'var(--text)', fontWeight: 600, flex: 1,
               }}>
-                {stat.value}
+                {defaultBranch}
               </p>
-              <p style={{
-                fontFamily: 'var(--font-mono)', fontSize: '0.55rem',
-                color: 'var(--text-muted)', textTransform: 'uppercase',
-                letterSpacing: '0.06em',
+              <span style={{
+                fontFamily: 'var(--font-mono)', fontSize: '0.6rem',
+                color: '#10b981',
               }}>
-                {stat.label}
-              </p>
+                last push: {lastPush}
+              </span>
             </div>
-          ))}
-        </div>
+
+            {/* Stats grid */}
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '0.45rem', marginBottom: '0.85rem',
+            }}>
+              {[
+                { value: repoData?.totalCommits ?? 0, label: 'Commits', color: '#f7df1e' },
+                { value: repoData?.totalAdditions ?? 0, label: 'Added', color: '#10b981' },
+                { value: repoData?.totalDeletions ?? 0, label: 'Deleted', color: '#ef4444' },
+              ].map((stat) => (
+                <div key={stat.label} style={{
+                  padding: '0.7rem 0.4rem', background: 'var(--card-bg)',
+                  border: '1px solid var(--border)', borderRadius: 8,
+                  textAlign: 'center',
+                }}>
+                  <p style={{
+                    fontFamily: 'var(--font-display)', fontSize: '1.3rem',
+                    fontWeight: 800, color: stat.color,
+                  }}>
+                    {stat.value}
+                  </p>
+                  <p style={{
+                    fontFamily: 'var(--font-mono)', fontSize: '0.55rem',
+                    color: 'var(--text-muted)', textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}>
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Recent commits */}
+            <div style={{ marginBottom: '0.85rem' }}>
+              <p style={{
+                fontFamily: 'var(--font-mono)', fontSize: '0.6rem',
+                color: 'var(--text-muted)', textTransform: 'uppercase',
+                letterSpacing: '0.1em', fontWeight: 600,
+                marginBottom: '0.4rem',
+              }}>
+                Recent Commits
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {commits.slice(0, 5).map((commit) => (
+                  <div key={commit.sha} style={{
+                    padding: '0.45rem 0.55rem',
+                    background: 'var(--card-bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 6, display: 'flex',
+                    alignItems: 'flex-start', gap: '0.5rem',
+                  }}>
+                    <span style={{
+                      fontFamily: 'var(--font-mono)', fontSize: '0.6rem',
+                      color: '#f7df1e', flexShrink: 0, marginTop: '0.1rem',
+                    }}>
+                      {commit.sha.substring(0, 7)}
+                    </span>
+                    <p style={{
+                      fontFamily: 'var(--font-body)', fontSize: '0.72rem',
+                      color: 'var(--text-secondary)', flex: 1,
+                      lineHeight: 1.4, overflow: 'hidden',
+                      textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {commit.commit.message.split('\n')[0]}
+                    </p>
+                    <span style={{
+                      fontFamily: 'var(--font-mono)', fontSize: '0.58rem',
+                      color: 'var(--text-muted)', flexShrink: 0,
+                    }}>
+                      {formatTimeAgo(commit.commit.author.date)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         {/* View on GitHub */}
         <a
