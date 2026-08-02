@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/VSCode-Personal-Portfolio/',
+  base: '/src/data/portfolioData.js',
 });
