@@ -19,37 +19,34 @@ export default function SourceControlPopup({ open, onClose }) {
 
     const fetchData = async () => {
       try {
-        const [repoRes, commitsRes, statsRes] = await Promise.all([
+        // Fetch repo info and commit list
+        const [repoRes, commitsRes] = await Promise.all([
           fetch(`${GITHUB_API}/${REPO_NAME}`),
-          fetch(`${GITHUB_API}/${REPO_NAME}/commits?per_page=5`),
-          fetch(`${GITHUB_API}/${REPO_NAME}/stats/contributors`),
+          fetch(`${GITHUB_API}/${REPO_NAME}/commits?per_page=100`),
         ]);
 
         if (!repoRes.ok || !commitsRes.ok) throw new Error('API error');
 
         const repo = await repoRes.json();
         const commitsList = await commitsRes.json();
+        const totalCommits = Array.isArray(commitsList) ? commitsList.length : 0;
 
-        // Parse contributor stats for total additions/deletions
-        let totalAdditions = 0;
-        let totalDeletions = 0;
-        let totalCommits = 0;
+        // Fetch the latest commit detail to get additions/deletions
+        let latestAdditions = 0;
+        let latestDeletions = 0;
 
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          if (Array.isArray(statsData)) {
-            statsData.forEach((contributor) => {
-              totalCommits += contributor.total || 0;
-              (contributor.weeks || []).forEach((week) => {
-                totalAdditions += week.a || 0;
-                totalDeletions += week.d || 0;
-              });
-            });
+        if (commitsList.length > 0) {
+          const latestSha = commitsList[0].sha;
+          const detailRes = await fetch(`${GITHUB_API}/${REPO_NAME}/commits/${latestSha}`);
+          if (detailRes.ok) {
+            const detailData = await detailRes.json();
+            latestAdditions = detailData.stats?.additions || 0;
+            latestDeletions = detailData.stats?.deletions || 0;
           }
         }
 
-        setRepoData({ ...repo, totalCommits, totalAdditions, totalDeletions });
-        setCommits(commitsList);
+        setRepoData({ ...repo, totalCommits, latestAdditions, latestDeletions });
+        setCommits(commitsList.slice(0, 5));
         setLoading(false);
       } catch (err) {
         setError(true);
@@ -203,8 +200,8 @@ export default function SourceControlPopup({ open, onClose }) {
             }}>
               {[
                 { value: repoData?.totalCommits ?? 0, label: 'Commits', color: '#f7df1e' },
-                { value: repoData?.totalAdditions ?? 0, label: 'Added', color: '#10b981' },
-                { value: repoData?.totalDeletions ?? 0, label: 'Deleted', color: '#ef4444' },
+                { value: repoData?.latestAdditions ?? 0, label: 'Added', color: '#10b981' },
+                { value: repoData?.latestDeletions ?? 0, label: 'Deleted', color: '#ef4444' },
               ].map((stat) => (
                 <div key={stat.label} style={{
                   padding: '0.7rem 0.4rem', background: 'var(--card-bg)',
