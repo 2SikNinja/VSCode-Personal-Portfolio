@@ -220,10 +220,8 @@ export default function App() {
   if (isMobile) {
     return (
       <div style={{
-        height: '100vh', display: 'flex', flexDirection: 'column',
+        height: '100dvh', display: 'flex', flexDirection: 'column',
         background: 'var(--editor-bg)', color: 'var(--text)', overflow: 'hidden',
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}>
         {/* Mobile header with nav icons */}
         <div style={{
@@ -339,8 +337,12 @@ export default function App() {
           </div>
         </div>
 
-        {/* Content area */}
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+        {/* Content area - full scroll with bottom padding for Safari bar */}
+        <div style={{
+          flex: 1, overflowY: 'auto', overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: '80px',
+        }}>
           {renderPage()}
         </div>
 
@@ -348,7 +350,7 @@ export default function App() {
         {terminalOpen && (
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0,
-            height: '45vh', zIndex: 800,
+            height: '45dvh', zIndex: 800,
             borderTop: '2px solid var(--accent)',
           }}>
             <TerminalPanel
