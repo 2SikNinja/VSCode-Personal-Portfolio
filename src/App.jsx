@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { personalInfo } from './data/portfolioData';
+import { personalInfo, fileList } from './data/portfolioData';
 import themes from './data/themes';
 import ActivityBar from './components/ActivityBar';
 import SidePanel from './components/SidePanel';
@@ -13,6 +13,7 @@ import MenuBar from './components/MenuBar';
 import TerminalPanel from './components/TerminalPanel';
 import SettingsPanel from './components/SettingsPanel';
 import ThemePickerPopup from './components/ThemePickerPopup';
+import Icon from './components/Icon';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import ProjectsPage from './pages/ProjectsPage';
@@ -23,7 +24,7 @@ import ContactPage from './pages/ContactPage';
 export default function App() {
   const [activeFile, setActiveFile] = useState('home');
   const [openTabs, setOpenTabs] = useState(['home']);
-  const [sidebarVisible, setSidebarVisible] = useState(window.innerWidth >= 700);
+  const [sidebarVisible, setSidebarVisible] = useState(window.innerWidth >= 768);
   const [activeIcon, setActiveIcon] = useState('files');
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [sourceControlOpen, setSourceControlOpen] = useState(false);
@@ -34,6 +35,7 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [dotsHovered, setDotsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [currentTheme, setCurrentTheme] = useState(() => {
     return localStorage.getItem('portfolio-theme') || 'peter-dark';
   });
@@ -97,9 +99,16 @@ export default function App() {
     };
   }, []);
 
+  // ─── Responsive detection ───
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 700) setSidebarVisible(false);
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setSidebarVisible(false);
+        setClaudeChatOpen(false);
+        setTerminalOpen(false);
+      }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -205,6 +214,222 @@ export default function App() {
 
   const themeName = themes[currentTheme]?.name || 'Peter Dark';
 
+  // ═══════════════════════════════════════════
+  // MOBILE LAYOUT
+  // ═══════════════════════════════════════════
+  if (isMobile) {
+    return (
+      <div style={{
+        height: '100vh', display: 'flex', flexDirection: 'column',
+        background: 'var(--editor-bg)', color: 'var(--text)', overflow: 'hidden',
+      }}>
+        {/* Mobile header */}
+        <div style={{
+          height: 44, background: 'var(--activitybar-bg)',
+          borderBottom: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center',
+          padding: '0 0.75rem', flexShrink: 0,
+          justifyContent: 'space-between',
+        }}>
+          <span style={{
+            fontFamily: 'var(--font-mono)', fontSize: '0.75rem',
+            color: 'var(--text-muted)',
+          }}>
+            {personalInfo.titleBarLabel}
+          </span>
+          <button
+            onClick={() => setPaletteOpen(true)}
+            style={{
+              background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)',
+              borderRadius: 6, padding: '0.25rem 0.6rem',
+              fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
+              color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem',
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="7" /><path d="M16 16L21 21" />
+            </svg>
+            Search
+          </button>
+        </div>
+
+        {/* Mobile tab bar */}
+        <div style={{
+          display: 'flex', background: 'var(--tab-bg)',
+          borderBottom: '1px solid var(--border)',
+          overflowX: 'auto', flexShrink: 0,
+          WebkitOverflowScrolling: 'touch',
+        }}>
+          {fileList.map((file) => (
+            <button
+              key={file.id}
+              onClick={() => handleFileSelect(file.id)}
+              style={{
+                padding: '0.45rem 0.75rem', background: activeFile === file.id ? 'var(--editor-bg)' : 'transparent',
+                border: 'none', borderBottom: activeFile === file.id ? '2px solid var(--accent)' : '2px solid transparent',
+                color: activeFile === file.id ? 'var(--text)' : 'var(--text-muted)',
+                fontFamily: 'var(--font-mono)', fontSize: '0.7rem',
+                whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.3rem',
+                flexShrink: 0,
+              }}
+            >
+              <Icon logoKey={file.iconKey} size={14} />
+              {file.name.split('.')[0]}
+            </button>
+          ))}
+        </div>
+
+        {/* Mobile content area */}
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+          {renderPage()}
+        </div>
+
+        {/* Mobile terminal (full width overlay from bottom) */}
+        {terminalOpen && (
+          <div style={{
+            position: 'fixed', bottom: 52, left: 0, right: 0,
+            height: '45vh', zIndex: 800,
+          }}>
+            <TerminalPanel
+              open={terminalOpen}
+              onClose={() => setTerminalOpen(false)}
+              onOpenFile={handleFileSelect}
+            />
+          </div>
+        )}
+
+        {/* Mobile Claude chat (full screen overlay) */}
+        {claudeChatOpen && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 850,
+            background: 'var(--sidebar-bg)',
+          }}>
+            <ClaudeChatPopup
+              open={claudeChatOpen}
+              onClose={() => setClaudeChatOpen(false)}
+            />
+          </div>
+        )}
+
+        {/* Mobile settings (full screen overlay) */}
+        <SettingsPanel
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          currentTheme={currentTheme}
+          onThemeChange={setCurrentTheme}
+          onOpenPalette={() => setPaletteOpen(true)}
+          onToggleTerminal={() => setTerminalOpen((v) => !v)}
+          onToggleCopilot={() => { setClaudeChatOpen((v) => !v); setSettingsOpen(false); }}
+          onDownloadResume={handleDownloadResume}
+          onToggleFullscreen={handleToggleFullscreen}
+        />
+
+        {/* Mobile bottom navigation */}
+        <div style={{
+          height: 52, background: 'var(--activitybar-bg)',
+          borderTop: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center',
+          justifyContent: 'space-around',
+          flexShrink: 0, padding: '0 0.25rem',
+        }}>
+          {[
+            { id: 'home', label: 'Home', icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            )},
+            { id: 'search', label: 'Search', icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="11" cy="11" r="7" /><path d="M16 16L21 21" />
+              </svg>
+            )},
+            { id: 'terminal', label: 'Terminal', icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" />
+              </svg>
+            )},
+            { id: 'claude', label: 'Claude', icon: (
+              <Icon logoKey="claude" size={18} />
+            )},
+            { id: 'resume', label: 'Resume', icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="12" y1="12" x2="12" y2="18" />
+                <polyline points="9 15 12 18 15 15" />
+              </svg>
+            )},
+            { id: 'settings', label: 'Settings', icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            )},
+          ].map((item) => {
+            const isActive = (item.id === 'home' && activeFile === 'home') ||
+              (item.id === 'terminal' && terminalOpen) ||
+              (item.id === 'claude' && claudeChatOpen) ||
+              (item.id === 'settings' && settingsOpen);
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  if (item.id === 'home') handleFileSelect('home');
+                  else if (item.id === 'search') setPaletteOpen(true);
+                  else if (item.id === 'terminal') setTerminalOpen((v) => !v);
+                  else if (item.id === 'claude') { setClaudeChatOpen((v) => !v); setSettingsOpen(false); }
+                  else if (item.id === 'resume') handleDownloadResume();
+                  else if (item.id === 'settings') { setSettingsOpen((v) => !v); setClaudeChatOpen(false); }
+                }}
+                style={{
+                  background: 'none', border: 'none',
+                  color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', gap: '0.1rem',
+                  padding: '0.25rem 0.35rem', borderRadius: 6,
+                  opacity: isActive ? 1 : 0.6,
+                  transition: 'color 0.15s, opacity 0.15s',
+                }}
+              >
+                {item.icon}
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: '0.48rem',
+                  textTransform: 'uppercase', letterSpacing: '0.03em',
+                }}>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Command palette (works on both) */}
+        <CommandPalette
+          open={paletteOpen}
+          onClose={() => setPaletteOpen(false)}
+          onFileSelect={handlePaletteSelect}
+        />
+
+        {/* Toast notification */}
+        {toastVisible && (
+          <div style={{
+            position: 'fixed', bottom: 60, left: '50%', transform: 'translateX(-50%)',
+            background: 'var(--accent)', color: '#fff',
+            padding: '0.55rem 1.25rem', borderRadius: 8,
+            fontFamily: 'var(--font-mono)', fontSize: '0.8rem',
+            fontWeight: 600, zIndex: 9999,
+            boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
+            animation: 'toastIn 0.2s ease-out',
+          }}>
+            {toastMessage}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════
+  // DESKTOP LAYOUT (unchanged)
+  // ═══════════════════════════════════════════
   return (
     <div style={{
       height: '100vh', display: 'flex', flexDirection: 'column',

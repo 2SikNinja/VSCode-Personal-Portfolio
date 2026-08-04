@@ -81,15 +81,11 @@ body {
 @media (hover: none) and (pointer: coarse) {
   html, body { cursor: auto; }
   .cursor-dot, .cursor-box { display: none !important; }
+  *, *::before, *::after { cursor: auto; }
+  a, button, input, textarea, select, [role="button"] { cursor: auto !important; }
 }
 
-/* Also hide on mobile widths */
-@media (max-width: 700px) {
-  html, body { cursor: auto; }
-  .cursor-dot, .cursor-box { display: none !important; }
-}
-
-/* Make sure all interactive elements also hide cursor */
+/* Make sure all interactive elements also hide cursor on desktop */
 *, *::before, *::after {
   cursor: none;
 }
@@ -107,23 +103,10 @@ a, button, input, textarea, select, [role="button"] {
   color: #c0caf5;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }
 
 input::placeholder,
 textarea::placeholder {
@@ -131,21 +114,21 @@ textarea::placeholder {
   opacity: 0.6;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .hideSmall {
     display: none !important;
   }
+
+  /* Restore normal cursor on mobile */
+  html, body { cursor: auto; }
+  .cursor-dot, .cursor-box { display: none !important; }
+  *, *::before, *::after { cursor: auto; }
+  a, button, input, textarea, select, [role="button"] { cursor: auto !important; }
 }
 
 @keyframes paletteIn {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-10px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.97); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 }
 
 @keyframes toastIn {
