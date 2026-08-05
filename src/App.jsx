@@ -350,8 +350,8 @@ export default function App() {
         {/* Terminal overlay from bottom */}
         {terminalOpen && (
           <div style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0,
-            height: '45dvh', zIndex: 800,
+            position: 'fixed', bottom: 0, left: 0, right: 0, top: '50%',
+            zIndex: 800, background: 'var(--activitybar-bg)',
             borderTop: '2px solid var(--accent)',
           }}>
             <TerminalPanel
