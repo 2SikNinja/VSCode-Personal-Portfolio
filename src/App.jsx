@@ -220,7 +220,8 @@ export default function App() {
   if (isMobile) {
     return (
       <div style={{
-        height: '100dvh', display: 'flex', flexDirection: 'column',
+        height: '100dvh', minHeight: '-webkit-fill-available',
+        display: 'flex', flexDirection: 'column',
         background: 'var(--editor-bg)', color: 'var(--text)', overflow: 'hidden',
       }}>
         {/* Mobile header with nav icons */}
@@ -337,11 +338,11 @@ export default function App() {
           </div>
         </div>
 
-        {/* Content area - full scroll with bottom padding for Safari bar */}
+        {/* Content area */}
         <div style={{
           flex: 1, overflowY: 'auto', overflowX: 'hidden',
           WebkitOverflowScrolling: 'touch',
-          paddingBottom: '80px',
+          paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))',
         }}>
           {renderPage()}
         </div>

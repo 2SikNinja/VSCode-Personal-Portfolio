@@ -28,10 +28,19 @@
 
 html,
 body {
-  overflow: hidden;
   height: 100%;
   cursor: none;
-  background: #0f1017
+  background: #0f1017;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+
+  html,
+  body {
+    overflow: hidden;
+    height: -webkit-fill-available;
+  }
 }
 
 /* Custom cursor - small inner dot */
@@ -80,18 +89,46 @@ body {
 
 /* Hide custom cursor on touch devices */
 @media (hover: none) and (pointer: coarse) {
-  html, body { cursor: auto; }
-  .cursor-dot, .cursor-box { display: none !important; }
-  *, *::before, *::after { cursor: auto; }
-  a, button, input, textarea, select, [role="button"] { cursor: auto !important; }
+
+  html,
+  body {
+    cursor: auto;
+  }
+
+  .cursor-dot,
+  .cursor-box {
+    display: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    cursor: auto;
+  }
+
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  [role="button"] {
+    cursor: auto !important;
+  }
 }
 
 /* Make sure all interactive elements also hide cursor on desktop */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   cursor: none;
 }
 
-a, button, input, textarea, select, [role="button"] {
+a,
+button,
+input,
+textarea,
+select,
+[role="button"] {
   cursor: none !important;
 }
 
@@ -104,10 +141,23 @@ a, button, input, textarea, select, [role="button"] {
   color: #c0caf5;
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
 
 input::placeholder,
 textarea::placeholder {
@@ -121,18 +171,52 @@ textarea::placeholder {
   }
 
   /* Restore normal cursor on mobile */
-  html, body { cursor: auto; }
-  .cursor-dot, .cursor-box { display: none !important; }
-  *, *::before, *::after { cursor: auto; }
-  a, button, input, textarea, select, [role="button"] { cursor: auto !important; }
+  html,
+  body {
+    cursor: auto;
+  }
+
+  .cursor-dot,
+  .cursor-box {
+    display: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    cursor: auto;
+  }
+
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  [role="button"] {
+    cursor: auto !important;
+  }
 }
 
 @keyframes paletteIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.97); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
 }
 
 @keyframes toastIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
