@@ -90,6 +90,14 @@ export const aboutPageData = {
     school: 'Cal Poly Pomona',
     year: 'May 2024',
   },
+  certifications: [
+    {
+      name: 'Google Cybersecurity Certificate',
+      issuer: 'Coursera · Google',
+      year: '2026',
+      color: '#4285f4',  // Google blue
+    },
+  ],
 };
 
 // ════════════════════════════════════════════════════════════════

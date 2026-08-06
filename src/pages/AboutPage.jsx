@@ -25,6 +25,18 @@ export default function AboutPage() {
           {aboutPageData.education.school} · {aboutPageData.education.year}
         </p>
       </div>
+
+      {aboutPageData.certifications && aboutPageData.certifications.map((cert, i) => (
+        <div key={i} style={{ marginTop: '1rem', padding: '1.5rem', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 10, borderLeft: `3px solid ${cert.color}` }}>
+          <p style={{ ...commentStyle, marginBottom: '0.75rem' }}>{'//'} certification</p>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--text)', fontWeight: 600, marginBottom: '0.3rem' }}>
+            {cert.name}
+          </h3>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.88rem', color: cert.color }}>
+            {cert.issuer} · {cert.year}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
